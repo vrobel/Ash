@@ -241,12 +241,68 @@ package net.richardlord.ash.core
 			game.removeAllEntities();
 			assertThat( nodes.head, nullValue() );
 		}
+
+		[Test]
+		public function familyContainsOnlyMatchingEntitiesWithOnlyExcludedComponents() : void
+		{
+			game.familyClass = ComponentExcludedMatchingFamily;
+			var entities : Array = new Array();
+
+			var blockEntity : Entity = new Entity();
+			blockEntity.add( new Point() );
+			blockEntity.add( new Matrix() );
+			entities.push( blockEntity );
+			game.addEntity( blockEntity );
+
+			var passEntity : Entity = new Entity();
+			passEntity.add( new Point() );
+			entities.push( passEntity );
+			game.addEntity( passEntity );
+
+			var nodes : NodeList = game.getNodeList( MockNodeWithExcludedType );
+			var passNode : Node = Node(nodes.head);
+			assertThat( passNode && passNode.entity, sameInstance(passEntity) );
+			assertThat( passNode && passNode.next, nullValue() );
+		}
+
+		[Test]
+		public function familyRemovesEntityAfterAddingExcludedComponent() : void
+		{
+			game.familyClass = ComponentExcludedMatchingFamily;
+			var entity : Entity = new Entity();
+			entity.add( new Point() );
+			var nodes : NodeList = game.getNodeList( MockNodeWithExcludedType );
+			game.addEntity( entity );
+			entity.add( new Matrix() );
+			assertThat( nodes.head, nullValue() );
+		}
+
+		[Test]
+		public function familyAddsEntityAfterRemovingExcludedComponent() : void
+		{
+			game.familyClass = ComponentExcludedMatchingFamily;
+			var entity : Entity = new Entity();
+			entity.add( new Point() );
+			var blockedComponent : Matrix = new Matrix();
+			entity.add( blockedComponent );
+			var nodes : NodeList = game.getNodeList( MockNodeWithExcludedType );
+			game.addEntity( entity );
+			entity.remove( Matrix );
+			var node:Node = nodes.head;
+			assertThat( node && node.entity, sameInstance(entity) );
+		}
 	}
 }
 import net.richardlord.ash.core.Node;
 
 import flash.geom.Matrix;
 import flash.geom.Point;
+
+class MockNodeWithExcludedType extends Node
+{
+	public var point : Point;
+	public static const excluded:Array = [Matrix];
+}
 
 class MockNode extends Node
 {
